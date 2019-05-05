@@ -198,7 +198,7 @@ class Cubo:
             self.cubo[random_index].set_objetivo()
             self.objetivo = self.cubo[random_index]
         else: # Parametros passados pelo usuário
-            if self.cubo[objetivo_usuario].blocked == True or self.cubo[objetivo_usuario].start == True:
+            if (self.cubo[objetivo_usuario].blocked == True or self.cubo[objetivo_usuario].start == True):
                 return self.set_objetivo()
             self.cubo[objetivo_usuario].set_objetivo()
             self.objetivo = self.cubo[objetivo_usuario]
@@ -245,7 +245,14 @@ class Cubo:
 class A_STAR:
     """ CLasse de implementação do algorítmo A*
     """
-    def __init__(self, cubo):
+    def __init__(self):
+        self.cubo = None
+        self.atual = None
+        self.fechados = None
+        self.abertos = None
+        self.caminho = None
+
+    def find_a_star(self, cubo):
         self.cubo = cubo
         self.atual = cubo.get_start()
         self.fechados = []
@@ -260,18 +267,22 @@ class A_STAR:
         print("  OBJETIVO {}".format(self.cubo.objetivo.id))
 
         while( len(self.abertos)!= 0): # Enquanto existir nós abertos
-            print("  ATUAL {0}, Iteração {1}".format(self.atual.id, len(self.caminho)))
-            a = input()
+            fScore_vizinho = np.inf
             for i in self.abertos: # Aberto com o menor valor de fScore
-                #current := the node in openSet having the lowest fScore[] value
-                if i.fScore < self.atual.fScore: self.atual = i
+                if i.fScore < fScore_vizinho:
+                    fScore_vizinho = i.fScore
+                    self.atual = i
+                    print(" VIZINHO: {0},  CUSTO {1}:".format(self.atual.id, self.atual.fScore))
 
-                #print(" ABERTOS {}".format(self.atual.id))
-
-            if self.atual == cubo.objetivo: return self.caminho
+            print(" ATUAL: {0}:".format(self.atual.id))
+            #self.caminho.append(self.atual) # Valor com menor fScore Adicionado ao caminho
+            #print(" ATUAL: {0},  CUSTO {1}:".format(self.atual.id, self.atual.fScore))
+            if self.atual == cubo.objetivo:
+                #self.print_caminho(self.caminho)
+                print(" Custo: {}".format(len(self.caminho) -1))
+                return self.caminho
 
             self.abertos.remove(self.atual) # Remove o atual dos abertos
-
             self.fechados.append(self.atual) # Coloca o atual nos fechados
 
 
@@ -281,17 +292,20 @@ class A_STAR:
                 if vizinho.blocked == True: continue #Vizinho fechado
 
                 # Distancia do início até um vizinho
-                #gScore_tentativa = self.atual.gScore + self.cubo.get_distance(self.atual, vizinho)
                 gScore_tentativa = self.atual.gScore + self.cubo.get_distance(self.atual, vizinho)
 
-                if vizinho not in self.abertos:
+                if vizinho not in self.abertos: # Adiciona nos abertos
                     self.abertos.append(vizinho)
-                elif gScore_tantativa >= vizinho.gScore:
+                elif gScore_tentativa >= vizinho.gScore:
                     continue
-
-                self.caminho.append(vizinho)
                 vizinho.gScore = gScore_tentativa
                 vizinho.fScore = vizinho.gScore + self.cubo.get_distance(vizinho, cubo.objetivo)
+
+        print("  Não foi encontrado caminho")
+
+    def print_caminho(self, caminho):
+        for i in caminho:
+            print (" {} ".format(i.id))
 
 
 
@@ -301,15 +315,21 @@ def main():
     cubo_main = Cubo()
     #start = time.perf_counter()
     cubo_main.generate_cubo(3)
+
     #end = time.perf_counter()
     #print(" {}".format(end-start))
     cubo_main.generate_blocked(0)
+    cubo_main.set_start((1, 0, 0))
     #print(" Numero de bloqueados {}".format(cubo_main.numero_bloqueados))
-    cubo_main.set_start()
-    cubo_main.set_objetivo()
-    #cubo.print_cubo()
-    #cubo_main.cubo[(2,2,2)].print_vizinhos()
-    a = A_STAR(cubo_main)
-    print(a)
+    #cubo_main.set_start()
+    cubo_main.set_objetivo((2, 1, 2))
+    cubo_main.print_cubo()
+
+    a = A_STAR()
+    #start = time.perf_counter()
+    #cubo_main.cubo[(2, 2, 4)].print_vizinhos()
+
+    a.find_a_star(cubo_main)
+
 if __name__ == "__main__":
     main()
