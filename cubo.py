@@ -12,6 +12,7 @@
 
 import sys
 import numpy as np
+import time
 import random
 # VARIAVEIS GLOBAIS E DEFINES
 globals()['N_DIMENSOES'] = 3
@@ -30,9 +31,11 @@ class Node:
         self.vizinho_esquerda = None
         self.vizinho_frente   = None
         self.vizinho_atras    = None
-        self.start = False
+        self.start    = False
         self.objetivo = False
         self.blocked  = False
+        self.gScore = np.inf # Seta o g Score como infinito
+        self.fScore = np.inf # Seta o f Score como infinito
 
         if (len(id) == N_DIMENSOES): # Verifica o numero correto de dimensoes
             self.id = (id)
@@ -166,26 +169,47 @@ class Cubo:
                 random_index = random.choice(list(self.cubo))
             self.cubo[random_index].set_blocked()
 
-    def set_start(self):
+    def set_start(self, start_usuario = None):
         " Metodo que seta o start para algum nodo não bloqueado do cubo"
-        random_index = random.choice(list(self.cubo))
-        # Garante a criação de um começo não bloqueado
-        while ( self.cubo[random_index].blocked == True):
+        if start_usuario is None or len(start_usuario) != N_DIMENSOES:
+            #print(" Inicio não especificado ou parametros errado. Criação aleatória de inicio ")
             random_index = random.choice(list(self.cubo))
-        self.cubo[random_index].set_start()
-        self.start = self.cubo[random_index]
+            # Garante a criação de um começo não bloqueado
+            while ( self.cubo[random_index].blocked == True):
+                random_index = random.choice(list(self.cubo))
+            self.cubo[random_index].set_start()
+            self.start = self.cubo[random_index]
+        else: # Parametros passados pelo Usuario
+            if self.cubo[start_usuario].blocked == True or self.cubo[start_usuario].objetivo == True:
+                return self.set_start()
+            self.cubo[start_usuario].set_start()
+            self.start = self.cubo[start_usuario]
 
-    def set_objetivo(self):
+    def set_objetivo(self, objetivo_usuario = None ):
         " Metodo que gera o objetivo dentro de um cubo"
-        if(self.numero_nodos - 2 < self.numero_bloqueados): # Garante que existam mais de 2 nodos livres
+        if self.numero_nodos - 2 < self.numero_bloqueados: # Garante que existam mais de 2 nodos livres
             print(" Sem nodos livres o suficiente, não é possível executar")
             quit() # Finaliza a execução do programa
-        else:
+        if objetivo_usuario is None or len(objetivo_usuario) != N_DIMENSOES:
+            #print(" Objetivo não especificado ou parametros errados. Criação aleatória de objetivo ")
             random_index = random.choice(list(self.cubo))
             while ( self.cubo[random_index].blocked == True or self.cubo[random_index].start == True):
                 random_index = random.choice(list(self.cubo))
             self.cubo[random_index].set_objetivo()
             self.objetivo = self.cubo[random_index]
+        else: # Parametros passados pelo usuário
+            if self.cubo[objetivo_usuario].blocked == True or self.cubo[objetivo_usuario].start == True:
+                return self.set_objetivo()
+            self.cubo[objetivo_usuario].set_objetivo()
+            self.objetivo = self.cubo[objetivo_usuario]
+
+    def get_distance(self, atual, objetivo):
+        " Metodo que calcula a distancia euclidiana entre dois pontos tridimensionais"
+        distancia = ((objetivo.id[0] - atual.id[0])**2 +
+                     (objetivo.id[1] - atual.id[1])**2 +
+                     (objetivo.id[2] - atual.id[2])**2 )
+        distancia = np.sqrt(distancia)
+        return distancia
 
     def get_start(self):
         " Retorna o inicio do Cubo"
@@ -219,24 +243,73 @@ class Cubo:
         print(" Cubo com {} Nodos".format(self.numero_nodos))
 
 class A_STAR:
-
-
+    """ CLasse de implementação do algorítmo A*
+    """
     def __init__(self, cubo):
         self.cubo = cubo
         self.atual = cubo.get_start()
-        self.atual.print_vizinhos()
+        self.fechados = []
+        self.abertos = []
+        self.caminho = []
+
+        self.abertos.append(self.atual)
+        self.atual.gScore = 0 # gScore do Start
+        self.atual.fScore = self.cubo.get_distance(self.atual, cubo.objetivo)# gScore do Start
+
+        print("  INICIO   {}".format(self.atual.id))
+        print("  OBJETIVO {}".format(self.cubo.objetivo.id))
+
+        while( len(self.abertos)!= 0): # Enquanto existir nós abertos
+            print("  ATUAL {0}, Iteração {1}".format(self.atual.id, len(self.caminho)))
+            a = input()
+            for i in self.abertos: # Aberto com o menor valor de fScore
+                #current := the node in openSet having the lowest fScore[] value
+                if i.fScore < self.atual.fScore: self.atual = i
+
+                #print(" ABERTOS {}".format(self.atual.id))
+
+            if self.atual == cubo.objetivo: return self.caminho
+
+            self.abertos.remove(self.atual) # Remove o atual dos abertos
+
+            self.fechados.append(self.atual) # Coloca o atual nos fechados
+
+
+            for vizinho in self.atual.get_vizinhos():
+                if vizinho in self.fechados: continue # Vizinho já foi visitado
+                if vizinho == None: continue # Vizinho não é caminho
+                if vizinho.blocked == True: continue #Vizinho fechado
+
+                # Distancia do início até um vizinho
+                #gScore_tentativa = self.atual.gScore + self.cubo.get_distance(self.atual, vizinho)
+                gScore_tentativa = self.atual.gScore + self.cubo.get_distance(self.atual, vizinho)
+
+                if vizinho not in self.abertos:
+                    self.abertos.append(vizinho)
+                elif gScore_tantativa >= vizinho.gScore:
+                    continue
+
+                self.caminho.append(vizinho)
+                vizinho.gScore = gScore_tentativa
+                vizinho.fScore = vizinho.gScore + self.cubo.get_distance(vizinho, cubo.objetivo)
+
+
+
 
 def main():
     print(" Função principal")
     cubo_main = Cubo()
+    #start = time.perf_counter()
     cubo_main.generate_cubo(3)
-    cubo_main.generate_blocked(33)
-    print("Numero de bloqueados {}".format(cubo_main.numero_bloqueados))
+    #end = time.perf_counter()
+    #print(" {}".format(end-start))
+    cubo_main.generate_blocked(0)
+    #print(" Numero de bloqueados {}".format(cubo_main.numero_bloqueados))
     cubo_main.set_start()
     cubo_main.set_objetivo()
     #cubo.print_cubo()
     #cubo_main.cubo[(2,2,2)].print_vizinhos()
     a = A_STAR(cubo_main)
-
+    print(a)
 if __name__ == "__main__":
     main()
