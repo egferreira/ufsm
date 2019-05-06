@@ -16,6 +16,7 @@ import numpy as np
 import time
 import random
 import pandas
+import progressbar
 # VARIAVEIS GLOBAIS E DEFINES
 globals()['N_DIMENSOES'] = 3
 globals()['DEFAULT'] = 3
@@ -327,12 +328,14 @@ class A_STAR:
         print (" {} ".format(node.id))
 
 def main():
-    t_end = time.time() + 1 * 1
+    tempo_de_simulaca0 = 10#    *30 # 30 minutos de simulação
+    t_end = time.time() +tempo_de_simulaca0
+
     distancias = []
     tempos = []
-    dados = []
     inicios = []
     finais = []
+    contador = 0
     while time.time() < t_end :
         cubo_main = Cubo()
         cubo_main.generate_cubo(5) # Cubo com o tamanho 10x10x10
@@ -356,9 +359,12 @@ def main():
         finais.append(cubo_main.objetivo.id)
 
 
+
+
+
     df = pandas.DataFrame( {'Inicio': inicios, 'Final': finais, 'Distancia': distancias,'Tempos' : tempos })
-    writer = pandas.ExcelWriter('testes2_Size5_bloqued33.xlsx', engine = "xlsxwriter")
-    df.to_excel(writer, sheet_name ="teste2")
+    writer = pandas.ExcelWriter('final1_Size5_bloqued33.xlsx', engine = "xlsxwriter")
+    df.to_excel(writer, sheet_name ="final1")
     writer.save()
 
 if __name__ == "__main__":
