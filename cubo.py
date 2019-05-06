@@ -328,8 +328,9 @@ class A_STAR:
         print (" {} ".format(node.id))
 
 def main():
-    tempo_de_simulaca0 = 10#    *30 # 30 minutos de simulação
-    t_end = time.time() +tempo_de_simulaca0
+    tempo_de_simulaca0 = 60*10 # 30 minutos de simulação
+    t_inicio = time.time()
+    t_end = t_inicio + tempo_de_simulaca0
 
     distancias = []
     tempos = []
@@ -358,12 +359,11 @@ def main():
         inicios.append(cubo_main.start.id)
         finais.append(cubo_main.objetivo.id)
 
-
-
+        print("Estimado: {0}   Atual :   {1}".format(t_end-t_inicio, time.time()-t_inicio))
 
 
     df = pandas.DataFrame( {'Inicio': inicios, 'Final': finais, 'Distancia': distancias,'Tempos' : tempos })
-    writer = pandas.ExcelWriter('final1_Size5_bloqued33.xlsx', engine = "xlsxwriter")
+    writer = pandas.ExcelWriter('final2_Size5_bloqued33.xlsx', engine = "xlsxwriter")
     df.to_excel(writer, sheet_name ="final1")
     writer.save()
 
