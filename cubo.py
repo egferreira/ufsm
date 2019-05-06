@@ -15,9 +15,11 @@ import sys
 import numpy as np
 import time
 import random
+import pandas
 # VARIAVEIS GLOBAIS E DEFINES
 globals()['N_DIMENSOES'] = 3
 globals()['DEFAULT'] = 3
+globals()['DEBUG_CONT'] = 0
 
 class Node:
     """ Classe que representa um Nodo com uma vizinhança e parametros de objetivo e de inicio
@@ -270,8 +272,8 @@ class A_STAR:
         self.atual.gScore = 0 # gScore do Start
         self.atual.fScore = self.cubo.get_distance(self.atual, cubo.objetivo)# gScore do Start
 
-        print("  INICIO   {}".format(self.atual.id))
-        print("  OBJETIVO {}".format(self.cubo.objetivo.id))
+        #print("  INICIO   {}".format(self.atual.id))
+        #print("  OBJETIVO {}".format(self.cubo.objetivo.id))
 
         while( len(self.abertos)!= 0): # Enquanto existir nós abertos
             fScore_menor_dos_vizinhos = np.inf
@@ -281,8 +283,9 @@ class A_STAR:
                     self.atual = i
 
             if self.atual == cubo.objetivo:
-                self.print_caminho(self.atual)
-                self.custo = len(self.caminho)
+                #print(self.atual.id, cubo.objetivo.id)
+                #self.print_caminho(self.atual)
+                self.custo = len(self.get_caminho(self.atual))
                 return self.custo
 
             self.abertos.remove(self.atual) # Remove o atual dos abertos
@@ -303,8 +306,17 @@ class A_STAR:
                 vizinho.anterior = self.atual # Atualiza o melhor caminho
                 vizinho.gScore = gScore_tentativa
                 vizinho.fScore = vizinho.gScore + self.cubo.get_distance(vizinho, cubo.objetivo)
+        return None # Caminho não encontrado
 
-        return -1 # Caminho não encontrado
+
+    def get_caminho(self, node):
+        " Metodo que retorna o caminho o caminho"
+        node__ = node
+        if node__.anterior == None:
+            return
+        self.get_caminho( node__.anterior) # Chamada da propria função recursivamente
+        self.caminho.append(node__)
+        return self.caminho
 
     def print_caminho(self, node):
         " Metodo que mostra o caminho"
@@ -315,25 +327,39 @@ class A_STAR:
         print (" {} ".format(node.id))
 
 def main():
-    print(" Função principal")
-    cubo_main = Cubo()
-    #start = time.perf_counter()
-    cubo_main.generate_cubo(10)
+    t_end = time.time() + 1 * 1
+    distancias = []
+    tempos = []
+    dados = []
+    inicios = []
+    finais = []
+    while time.time() < t_end :
+        cubo_main = Cubo()
+        cubo_main.generate_cubo(5) # Cubo com o tamanho 10x10x10
+        cubo_main.generate_blocked(33) # 33 % de bloqueio
 
-    #end = time.perf_counter()
-    #print(" {}".format(end-start))
-    cubo_main.generate_blocked(50)
-    #cubo_main.set_start((1, 0, 0))
-    #print(" Numero de bloqueados {}".format(cubo_main.numero_bloqueados))
-    cubo_main.set_start()
-    cubo_main.set_objetivo()
-    cubo_main.print_cubo()
+        a = A_STAR()
+        cubo_main.set_start() # Seta inicio aleatóriamente
+        cubo_main.set_objetivo() # Seta objetivo aleatóriamente
 
-    a = A_STAR()
-    #start = time.perf_counter()
-    cubo_main.cubo[(1,0,1)].print_vizinhos()
+        start = time.perf_counter()  # Timer
+        custo = a.find_a_star(cubo_main)
+        end = time.perf_counter()     # Timer
 
-    a.find_a_star(cubo_main)
+        if custo == None: continue # Caminho não encontrado
+        tempo = end-start
+        #print("Custo : {}".format(custo))
+        #print("Tempo : {}".format(tempo))
+        distancias.append(custo)
+        tempos.append(tempo)
+        inicios.append(cubo_main.start.id)
+        finais.append(cubo_main.objetivo.id)
+
+
+    df = pandas.DataFrame( {'Inicio': inicios, 'Final': finais, 'Distancia': distancias,'Tempos' : tempos })
+    writer = pandas.ExcelWriter('testes2_Size5_bloqued33.xlsx', engine = "xlsxwriter")
+    df.to_excel(writer, sheet_name ="teste2")
+    writer.save()
 
 if __name__ == "__main__":
     main()
