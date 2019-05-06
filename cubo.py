@@ -249,6 +249,8 @@ class A_STAR:
     """ CLasse de implementação do algorítmo A*
     """
     def __init__(self):
+        """ Inicialização das variaveis para o método A*
+        """
         self.cubo = None
         self.atual = None
         self.fechados = None
@@ -256,7 +258,7 @@ class A_STAR:
         self.caminho = None
 
     def find_a_star(self, cubo):
-        """ Implementação do algorítmo A*
+        """ Implementação do Método A*
         """
         self.cubo = cubo
         self.atual = cubo.get_start()
