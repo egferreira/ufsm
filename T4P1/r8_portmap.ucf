@@ -1,0 +1,3 @@
+///////////////////////////     BASIC    ///////////////////////////
+net "rst" loc = T10;          // SW0 (Right-most)
+net "clk" loc = V10;          // 100MHz board clock

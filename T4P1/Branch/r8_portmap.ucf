@@ -1,0 +1,23 @@
+///////////////////////////     BASIC    ///////////////////////////
+net "rst" loc = T10;          // SW0 (Right-most)
+net "clk" loc = V10;          // 100MHz board clock
+
+///////////////////////////     INPUT    ///////////////////////////
+net "port_io[14]" loc = A8;    // BUTTON UP
+net "port_io[15]" loc = C9;    // BUTTON DOWN
+
+///////////////////////////     OUTPUT   ///////////////////////////
+net "port_io[7]" loc = T17;   // Segment A
+net "port_io[6]" loc = T18;   // Segment B
+net "port_io[5]" loc = U17;   // Segment C
+net "port_io[4]" loc = U18;   // Segment D
+net "port_io[3]" loc = M14;   // Segment E
+net "port_io[2]" loc = N14;   // Segment F
+net "port_io[1]" loc = L14;   // Segment G
+net "port_io[0]" loc = M13;   // Segment P
+
+net "port_io[12]" loc = P17;  // Display 3 (Left-most) 
+net "port_io[11]" loc = P18;  // Display 2
+net "port_io[10]" loc = N15;  // Display 1
+net "port_io[9]" loc = N16;  // Display 0 (Right-most)
+////////////////////////////////////////////////////////////////////
