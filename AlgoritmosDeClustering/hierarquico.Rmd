@@ -1,0 +1,70 @@
+---
+title: "Algorítmos de Clustering - Hierárquico"
+output: html_notebook
+---
+
+Sistemas Inteligentes
+
+UFSM 2019
+
+Emilio Ferreira
+
+Apresentação de algorítmos de Clustergin
+
+
+Primeiramente carregamos todos os dados e modificamos eles para tornar mais facil a análise.
+```{r}
+# Carregamos o nome do arquivo
+file_name = "maosDATABASE.csv"
+
+# Carregamos o arquivo
+data_maos_truco <- read.csv(file = file_name)
+```
+Agora vamos dividir os dados de uma maneira que facilite a sua análise
+```{r}
+# É coletado os dados que são relevantes para a análise
+
+# Agregamos o valor de maos de 1 Jogador
+data_maos_truco_adaptada <- data.frame(data_maos_truco$cartaAltaRobo  +
+                                       data_maos_truco$cartaMediaRobo + 
+                                       data_maos_truco$cartaBaixaRobo )
+
+colnames(data_maos_truco_adaptada)[1]<-"MaoJogador1"
+
+data_maos_truco_adaptada$MaoJogador2 <- c(data_maos_truco$cartaAltaHumano  +
+                                          data_maos_truco$cartaMediaHumano + 
+                                          data_maos_truco$cartaBaixaHumano )
+
+data_maos_truco_adaptada$PontosJogador1 <- c(data_maos_truco$pontosEnvidoRobo)
+
+data_maos_truco_adaptada$PontosJogador2 <- c(data_maos_truco$pontosEnvidoHumano)
+
+data_maos_truco_adaptada$QuemTruco <- c(data_maos_truco$quemTruco)
+
+data_maos_truco_adaptada$QuemEnvido <- c(data_maos_truco$quemPediuEnvido)
+
+# Se omite os erros de dados, NaN(not a number), ausência de valores, etc
+data_maos_truco_adaptada = na.omit(data_maos_truco_adaptada)
+
+head( data_maos_truco_adaptada)
+```
+
+Com os valores pertinentes para a análise aplicamso o algoritmos Hierárquico
+```{r}
+# Clusterização dos dados utilizando o algoritmo Hierárquico
+d <- dist(data_maos_truco_adaptada, method = "euclidean")
+resultado <- hclust(d, "average")
+plot(resultado, main = "Dendograma", xlab = "Media", ylab = "Altura")
+
+
+```
+Com o Podemos ver no dendograma uma distancia sugerida para ser coratada é quando a altura está entre 50 e 50
+```{r}
+#Realiza um recorte no dendograma originado de results, separando o dendograma em k grupos (k = 3).
+# A tag border define a cor dos retângulos que realizam o recorte.
+clusters <- cutree(resultado, 6)
+
+plot(data_maos_truco_adaptada[c("MaoJogador1", "MaoJogador2")], col = clusters)
+```
+
+

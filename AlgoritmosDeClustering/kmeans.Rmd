@@ -1,0 +1,98 @@
+---
+title: "Algorítmos de Clustering - Kmeans"
+output: html_notebook
+---
+Sistemas Inteligentes
+
+UFSM 2019
+
+Emilio Ferreira
+
+Apresentação de algorítmos de Clustergin
+
+```{r}
+library(factoextra)
+library(ggplot2)
+```
+
+  
+Primeiramente carregamos todos os dados e modificamos eles para tornar mais facil a análise.
+```{r}
+# Carregamos o nome do arquivo
+file_name = "maosDATABASE.csv"
+
+# Carregamos o arquivo
+data_maos_truco <- read.csv(file = file_name)
+```
+
+Agora vamos dividir os dados de uma maneira que facilite a sua análise
+```{r}
+# É coletado os dados que são relevantes para a análise
+
+# Agregamos o valor de maos de 1 Jogador
+data_maos_truco_adaptada <- data.frame(data_maos_truco$cartaAltaRobo  +
+                                       data_maos_truco$cartaMediaRobo + 
+                                       data_maos_truco$cartaBaixaRobo )
+
+# Muda o nome da coluna Para MaosJogador1
+colnames(data_maos_truco_adaptada)[1]<-"MaoJogador1"
+
+# Adiciona uma nova coluna chamada MaosJogador2
+data_maos_truco_adaptada$MaoJogador2 <- c(data_maos_truco$cartaAltaHumano  +
+                                          data_maos_truco$cartaMediaHumano + 
+                                          data_maos_truco$cartaBaixaHumano )
+
+# Adicona os dados de PontosJogador1 ( representam a quantidades de pontos do envido)
+data_maos_truco_adaptada$PontosJogador1 <- c(data_maos_truco$pontosEnvidoRobo)
+
+# Adiciona os dados dos pontos do Jogador2 ( representam os pontos do envido)
+data_maos_truco_adaptada$PontosJogador2 <- c(data_maos_truco$pontosEnvidoHumano)
+
+# Adiciona a coluna de quem chamo truco
+data_maos_truco_adaptada$QuemTruco <- c(data_maos_truco$quemTruco)
+
+# Adiciona a coluna de quem chamou envido
+data_maos_truco_adaptada$QuemEnvido <- c(data_maos_truco$quemPediuEnvido)
+
+# Se omite os erros de dados, NaN(not a number), ausência de valores, etc
+data_maos_truco_adaptada = na.omit(data_maos_truco_adaptada)
+
+#Mostra os dados formatados na tela
+head( data_maos_truco_adaptada)
+```
+
+
+ Apos formatarmos os dados com as informações que acreditamos ser relevantes para análise, vamos aplicar o algorítmo de Clustering K-means
+```{r}
+# Clusterização dos dados utilizando o algoritmo kmeans
+resultado <- kmeans( data_maos_truco_adaptada, 3, iter.max = 10, nstart = 1)
+
+# Mostra grafico 1 ( Mostrando o j)
+grafico1 <- ggplot( data_maos_truco_adaptada, aes( MaoJogador1, MaoJogador2, color = resultado$cluster)) + geom_point(alpha=.9)  + ggtitle(" Grafico 1")
+
+grafico1
+
+data_maos_truco_adaptada_2 <- data_maos_truco_adaptada
+data_maos_truco_adaptada_2$MaoJogador1 <- NULL
+data_maos_truco_adaptada_2$MaoJogador2 <- NULL
+data_maos_truco_adaptada_2$QuemTruco <- NULL
+
+resultado2 <- kmeans(data_maos_truco_adaptada_2, 6, iter.max = 10, nstart = 1)
+
+grafico2 <- ggplot( data_maos_truco_adaptada_2, aes( PontosJogador1, PontosJogador2, color = resultado2$cluster)) + geom_point() + ggtitle(" Grafico 2")
+
+grafico2
+
+
+plot(data_maos_truco_adaptada[c("MaoJogador1", "MaoJogador2", "QuemTruco")], col = resultado$cluster)
+
+plot(data_maos_truco_adaptada[c("PontosJogador1", "PontosJogador2", "QuemEnvido")], col = resultado2$cluster)
+
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed
